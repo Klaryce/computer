@@ -1,0 +1,56 @@
+// This file is part of coursework 2 for COMP1212
+// which follows the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// Written by Sam Wilson
+
+
+/**
+ * The ALU. Computes one of the following functions:
+ * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs,
+ * according to 6 input bits denoted zx,nx,zy,ny,f,no.
+ * The bit-combinations that yield each function are
+ * documented in the book. In addition, the ALU
+ * computes two 1-bit outputs: if the ALU output
+ * is 0, zr is set to 1; otherwise zr is set to 0;
+ * If out<0, ng is set to 1; otherwise ng is set to 0.
+ */
+
+CHIP ALU {
+    IN x[16], y[16], zx, nx, zy, ny, f, no;
+    OUT out[16], zr, ng;
+
+    PARTS:
+
+    /*zx*/
+    Mux16(x = x, y = false, sel = zx, out = c);
+
+    /*nx*/
+    Not16(x = c, out = a);
+    Mux16(x = c, y =a, sel = nx, out = e);
+
+    /*zy*/
+    Mux16(x = y, y = false, sel = zy, out = d);
+
+    /*ny*/
+    Not16(x = d, out = b);
+    Mux16(x = d, y =b, sel = ny, out = h);
+
+    /*f*/
+    And16(x = e, y = h, out = m);
+    Add16(x = e, y = h, out = n);
+    Mux16(x = m, y = n, sel = f, out = g);
+
+    /*no*/
+    Not16(x = g, out = i);
+
+    /*out and ng*/
+    Mux16(x = g, y = i, sel = no, out[0..15] = out, out[0..7] = outx, out[8..15] = outy, out[15] = ng);
+
+    /*zr*/
+    Or8Way(x = outx, out = p);
+    Or8Way(x = outy, out = q);
+    Or(x = p, y = q, out = u);
+    Not(x = u, out = zr);
+
+}
